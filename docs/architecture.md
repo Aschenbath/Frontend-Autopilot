@@ -65,6 +65,10 @@ Product Studio 默认监听 `127.0.0.1`，一次只运行一个生成任务，�
 
 本地视觉比较使用结构相似度和颜色直方图，只能判断大体布局和色彩是否接近，不能代替设计师判断，更不等于像素级复刻。UI audit 能发现可测量的问题，也不能证明页面一定“好看”。因此仓库同时保留机器报告和人工可查看的最终截图。
 
+## 已知设计缺陷
+
+Atlas Research 的运行暴露了一个问题：Fixer 在收到视觉比较失败时，会同时拿到参考图。第 2 轮它为了拉高结构相似度，把资料库和阅读页改成了参考图里的便签应用，产品语义被牺牲，分数仍未过线。验收器正确地拒绝了这个结果，但根因在输入侧。后续修改方向是：视觉失败只向 Fixer 提供结构性差异描述（布局密度、区块层级、留白比例），不再直接传入参考图；同时对修复轮加一条“页面必备内容不得消失”的硬检查。见 [README 的失败案例](../README.md#失败也算结果) 和 `docs/screenshots/atlas-rejected.png`。
+
 ## English summary
 
 The model is a constrained producer, not the judge. Fixed scaffolding, dependency allowlists, path jails, output budgets, real npm/Vite execution, Playwright scenarios, responsive state checks, bounded repair, and isolated polish promotion keep generation inside a verifiable local system. A result ships only when the complete deterministic verification path passes.
