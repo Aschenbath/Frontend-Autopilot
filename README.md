@@ -131,9 +131,9 @@ npm install -> npm run build -> 启动 Vite -> Playwright 打开浏览器
 | --- | --- |
 | ![Read It Later 插件列表页](docs/screenshots/read-it-later-list.png) | ![Sisyphus 待办插件](docs/screenshots/sisyphus-todo.png) |
 
-| Notes 列表 | Notes 查看 | Notes 编辑 |
-| --- | --- | --- |
-| ![Notes 插件列表页](docs/screenshots/notes-plugin-list.png) | ![Notes 插件查看页](docs/screenshots/notes-plugin-view.png) | ![Notes 插件编辑页](docs/screenshots/notes-plugin-editor.png) |
+| Notes 列表 | Notes 查看 |
+| --- | --- |
+| ![Notes 插件列表页](docs/screenshots/notes-plugin-list.png) | ![Notes 插件查看页](docs/screenshots/notes-plugin-view.png) |
 
 ## 快速运行
 
