@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { resolveRunsRoot } from '../core/runContext.js';
 import { createJobManager } from './jobManager.js';
 import { createRunStore } from './runStore.js';
+import { createShowcaseStore } from './showcaseStore.js';
 import { createPreviewManager } from './previewManager.js';
 import { ConsoleError } from './errors.js';
 import { readJson, sendBuffer, sendError, sendJson, sendText } from './http.js';
@@ -25,12 +26,14 @@ const STATIC_FILES = new Map([
 export function createConsoleServer({
   host = '127.0.0.1',
   runsRoot = resolveRunsRoot(),
+  showcaseRoot = path.join(path.dirname(path.resolve(runsRoot)), 'showcase'),
   pipeline,
   previewStart,
   env = process.env,
 } = {}) {
   const jobs = createJobManager({ runsRoot, pipeline, env });
   const store = createRunStore(runsRoot);
+  const showcase = createShowcaseStore(showcaseRoot);
   const previews = createPreviewManager({ start: previewStart });
   const sseClients = new Set();
   const server = http.createServer((req, res) => {
@@ -47,6 +50,14 @@ export function createConsoleServer({
     }
     if (req.method === 'POST' && pathname === '/api/session/config') {
       return sendJson(res, 200, jobs.setSessionConfig(await readJson(req)));
+    }
+    if (req.method === 'GET' && pathname === '/api/showcase') {
+      return sendJson(res, 200, { items: await showcase.listItems() });
+    }
+    const showcaseFile = pathname.match(/^\/api\/showcase\/([^/]+)\/screenshots\/([^/]+)$/);
+    if (showcaseFile && req.method === 'GET') {
+      const shot = await showcase.readScreenshot(showcaseFile[1], showcaseFile[2]);
+      return sendBuffer(res, 200, shot.data, shot.type);
     }
     if (pathname === '/api/jobs' && req.method === 'GET') {
       return sendJson(res, 200, { jobs: await listJobs() });

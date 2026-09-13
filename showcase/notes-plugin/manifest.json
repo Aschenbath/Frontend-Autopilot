@@ -1,0 +1,16 @@
+{
+  "title": "Notes 笔记",
+  "date": "2026-08-16",
+  "origin": "手工 vibe coding，截图驱动；未经过流水线验收",
+  "summary": "深色笔记插件：按日期分组的列表、查看页与带格式工具条的编辑页。",
+  "screenshots": [
+    "list.png",
+    "view.png",
+    "editor.png"
+  ],
+  "labels": {
+    "list.png": "笔记列表",
+    "view.png": "查看笔记",
+    "editor.png": "编辑笔记"
+  }
+}

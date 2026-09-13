@@ -16,6 +16,9 @@ let state = {
   canvasViewport: 'desktop',
   canvasPage: '/',
   studioEvidence: { design: { available: false }, quality: { available: false }, polish: { available: false } },
+  showcase: [],
+  selectedShowcase: null,
+  showcasePage: null,
 };
 let drawerReturnFocus = null;
 
@@ -48,6 +51,9 @@ const elements = {
   referenceList: document.querySelector('#reference-list'),
   runHistory: document.querySelector('#run-history'),
   historyCount: document.querySelector('#history-count'),
+  showcaseSection: document.querySelector('#showcase-section'),
+  showcaseList: document.querySelector('#showcase-list'),
+  showcaseGallery: document.querySelector('#showcase-gallery'),
   connectionDot: document.querySelector('#connection-dot'),
   connectionLabel: document.querySelector('#connection-label'),
   workspaceTitle: document.querySelector('#workspace-title'),
@@ -124,7 +130,7 @@ async function boot() {
   bindEvents();
   updateBriefCount();
   try {
-    await Promise.all([loadStatus(), loadJobs()]);
+    await Promise.all([loadStatus(), loadJobs(), loadShowcase()]);
     setConnection(true);
     if (state.status.activeJobId) await selectJob(state.status.activeJobId);
   } catch (error) {
@@ -143,6 +149,174 @@ async function loadStatus() {
 async function loadJobs() {
   const result = await api('/api/jobs');
   state.jobs = result.jobs || [];
+}
+
+async function loadShowcase() {
+  try {
+    const result = await api('/api/showcase');
+    state.showcase = result.items || [];
+  } catch {
+    state.showcase = [];
+  }
+}
+
+function clearShowcase() {
+  state.selectedShowcase = null;
+  state.showcasePage = null;
+  elements.showcaseGallery.hidden = true;
+  elements.showcaseGallery.replaceChildren();
+  elements.stageTrack.classList.remove('showcase-track');
+  elements.productCanvas.classList.remove('showcase-mode');
+}
+
+function selectShowcase(id) {
+  const item = state.showcase.find((entry) => entry.id === id);
+  if (!item) return;
+  state.eventSource?.close();
+  dispatch({ type: 'WORKSPACE_FOCUSED' });
+  state.previewJobId = null;
+  state.selectedShowcase = item;
+  state.showcasePage = item.pages[0]?.name || null;
+  state.inspectorTab = 'product';
+  state.studioEvidence = { design: { available: false }, quality: { available: false }, polish: { available: false } };
+  elements.previewFrame.src = 'about:blank';
+  elements.previewFrame.hidden = true;
+  setCanvasViewport('mobile');
+  setWorkspaceView('flow');
+  activateInspectorTab('product');
+  render();
+}
+
+function showcaseImageUrl(item, name) {
+  return `/api/showcase/${encodeURIComponent(item.id)}/screenshots/${encodeURIComponent(name)}`;
+}
+
+function renderShowcase() {
+  const item = state.selectedShowcase;
+  elements.composerPane.hidden = true;
+  elements.runMonitor.hidden = false;
+  elements.workspaceTitle.textContent = '成品展示';
+  elements.activeStatus.textContent = '成品展示';
+  elements.activeStatus.className = 'status-chip showcase';
+  elements.modelReadout.textContent = item.origin || '手工作品';
+  elements.runTitle.textContent = item.title;
+  if (elements.runMode) elements.runMode.textContent = '成品展示';
+  elements.runStarted.textContent = item.date || '--';
+  elements.runRepairs.textContent = '--';
+
+  elements.stageTrack.replaceChildren();
+  elements.stageTrack.classList.add('showcase-track');
+  const note = createElement('li', 'showcase-note');
+  note.append(
+    createElement('strong', '', item.title),
+    createElement('span', '', item.origin || '手工作品'),
+    createElement('p', '', item.summary || ''),
+  );
+  const facts = createElement('dl', 'showcase-facts');
+  for (const [label, value] of [['日期', item.date || '未标日期'], ['页面', `${item.pages.length} 张截图`], ['交付形态', '浏览器插件 · 静态截图']]) {
+    const row = document.createElement('div');
+    row.append(createElement('dt', '', label), createElement('dd', '', value));
+    facts.append(row);
+  }
+  note.append(facts);
+  elements.stageTrack.append(note);
+  item.pages.forEach((page, index) => {
+    const row = createElement('li', `showcase-page${page.name === state.showcasePage ? ' active' : ''}`);
+    row.append(createElement('span', 'timeline-marker', String(index + 1).padStart(2, '0')));
+    const copy = createElement('span', 'timeline-copy');
+    copy.append(createElement('strong', '', page.label), createElement('small', '', page.name));
+    row.append(copy);
+    row.addEventListener('click', () => selectCanvasPage(page.name));
+    elements.stageTrack.append(row);
+  });
+  elements.eventLog.replaceChildren(createElement('li', 'log-empty', '成品展示没有流水线事件。'));
+  elements.liveLabel.classList.remove('streaming');
+  elements.liveLabel.lastChild.textContent = ' 静态';
+
+  elements.canvasPage.replaceChildren();
+  for (const page of item.pages) {
+    const option = document.createElement('option');
+    option.value = page.name;
+    option.textContent = page.label;
+    elements.canvasPage.append(option);
+  }
+  elements.canvasPage.value = state.showcasePage || item.pages[0]?.name || '';
+  const current = item.pages.find((page) => page.name === elements.canvasPage.value) || item.pages[0];
+  elements.productCanvas.classList.add('showcase-mode');
+  elements.previewEmpty.hidden = true;
+  elements.previewFrame.hidden = true;
+  elements.showcaseGallery.replaceChildren();
+  for (const page of item.pages) {
+    const figure = createElement('figure', `showcase-figure${page.name === current.name ? ' active' : ''}`);
+    figure.dataset.page = page.name;
+    const url = showcaseImageUrl(item, page.name);
+    const image = evidenceImage(url, `${item.title} · ${page.label}`);
+    image.addEventListener('click', () => {
+      elements.dialogImage.src = url;
+      elements.dialogCaption.textContent = `${item.title} · ${page.label}`;
+      elements.imageDialog.showModal();
+    });
+    figure.append(image, createElement('figcaption', '', page.label));
+    elements.showcaseGallery.append(figure);
+  }
+  elements.showcaseGallery.hidden = false;
+  requestAnimationFrame(() => {
+    const active = elements.showcaseGallery.querySelector('.showcase-figure.active');
+    if (active) elements.showcaseGallery.scrollTo({ top: active.offsetTop - 16, behavior: 'smooth' });
+  });
+  elements.launchPreview.disabled = true;
+  elements.launchPreview.textContent = '启动预览';
+  elements.openPreview.disabled = true;
+  elements.previewLabel.textContent = '成品展示：静态截图，不启动本地预览。';
+
+  elements.evidenceTitle.textContent = item.title;
+  elements.shotCount.textContent = String(item.pages.length);
+  elements.repairCount.textContent = '0';
+  elements.inspectorProduct.replaceChildren();
+  const block = createElement('div', 'inspector-block');
+  block.append(createElement('h3', '', '作品说明'), createElement('p', '', item.summary || '暂无说明'));
+  const origin = createElement('div', 'inspector-block');
+  origin.append(createElement('h3', '', '来源'), createElement('p', '', item.origin || '手工作品'));
+  const pages = createElement('div', 'inspector-block');
+  const list = document.createElement('ul');
+  for (const page of item.pages) list.append(createElement('li', '', page.label));
+  pages.append(createElement('h3', '', `页面 · ${item.pages.length}`), list);
+  elements.inspectorProduct.append(block, origin, pages);
+  elements.inspectorDesign.replaceChildren(createElement('div', 'panel-empty', '成品展示没有设计规格记录。'));
+  elements.inspectorQuality.replaceChildren(createElement('div', 'panel-empty', '成品展示没有 UI 质量验收记录。'));
+
+  elements.screenshotsGrid.replaceChildren();
+  for (const page of item.pages) {
+    const button = createElement('button', 'screenshot-item');
+    button.type = 'button';
+    const url = showcaseImageUrl(item, page.name);
+    button.append(evidenceImage(url, `${item.title} · ${page.label}`), createElement('span', '', page.label));
+    button.addEventListener('click', () => {
+      elements.dialogImage.src = url;
+      elements.dialogCaption.textContent = `${item.title} · ${page.label}`;
+      elements.imageDialog.showModal();
+    });
+    elements.screenshotsGrid.append(button);
+  }
+  elements.repairList.replaceChildren(createElement('li', 'panel-empty', '成品展示没有自动修复记录。'));
+  elements.reportContent.textContent = '成品展示没有交付报告。';
+}
+
+function renderShowcaseList() {
+  elements.showcaseList.replaceChildren();
+  elements.showcaseSection.hidden = !state.showcase.length;
+  for (const item of state.showcase) {
+    const button = createElement('button', `history-item showcase-item${state.selectedShowcase?.id === item.id ? ' selected' : ''}`);
+    button.type = 'button';
+    button.addEventListener('click', () => selectShowcase(item.id));
+    const dot = createElement('span', 'history-status showcase');
+    dot.setAttribute('aria-hidden', 'true');
+    const copy = createElement('span', 'history-copy');
+    copy.append(createElement('strong', '', item.title));
+    copy.append(createElement('small', '', `${item.pages.length} 页 / ${item.date || '未标日期'}`));
+    button.append(dot, copy);
+    elements.showcaseList.append(button);
+  }
 }
 
 async function saveSession() {
@@ -183,6 +357,7 @@ async function launchJob() {
         model: elements.model.value.trim(),
       }),
     });
+    clearShowcase();
     dispatch({ type: 'JOB_STARTED', runId: job.id });
     state.jobs = [job, ...state.jobs.filter((item) => item.id !== job.id)];
     await selectJob(job.id);
@@ -223,6 +398,7 @@ function connectEvents(id) {
 
 async function selectJob(id) {
   const job = await api(`/api/jobs/${encodeURIComponent(id)}`);
+  clearShowcase();
   dispatch({ type: 'JOB_SELECTED', job });
   dispatch({ type: 'EVENTS_REPLAYED', events: job.events || [] });
   state.previewJobId = null;
@@ -241,7 +417,7 @@ async function selectJob(id) {
 }
 
 async function refreshSelectedJob() {
-  if (!state.selectedJob) return;
+  if (!state.selectedJob || state.selectedShowcase) return;
   try {
     const job = await api(`/api/jobs/${encodeURIComponent(state.selectedJob.id)}`);
     dispatch({ type: 'JOB_UPDATED', job });
@@ -358,6 +534,7 @@ function closeDrawer() {
 
 function resetComposer() {
   state.eventSource?.close();
+  clearShowcase();
   dispatch({ type: 'WORKSPACE_FOCUSED' });
   state.previewJobId = null;
   referenceInput.clear();
@@ -377,7 +554,7 @@ function activateTab(name) {
     panel.hidden = !active;
     panel.classList.toggle('active', active);
   }
-  if (name === 'report') loadReport();
+  if (name === 'report' && !state.selectedShowcase) loadReport();
   if (state.selectedJob && name === 'references') loadReferenceEvidence(state.selectedJob);
   if (state.selectedJob && name === 'visual') loadVisualEvidence(state.selectedJob).catch((error) => showToast(error.message));
 }
@@ -395,6 +572,11 @@ function setCanvasViewport(viewport) {
 }
 
 function selectCanvasPage(route) {
+  if (state.selectedShowcase) {
+    state.showcasePage = route;
+    renderShowcase();
+    return;
+  }
   state.canvasPage = route || '/';
   if (state.previewJobId !== state.selectedJob?.id || elements.previewFrame.hidden) return;
   elements.previewFrame.src = new URL(state.canvasPage, elements.previewFrame.src).href;
@@ -507,8 +689,13 @@ function evidenceImage(src, alt) {
 }
 
 function render() {
-  renderStatus();
   renderHistory();
+  renderShowcaseList();
+  if (state.selectedShowcase) {
+    renderShowcase();
+    return;
+  }
+  renderStatus();
   renderJob();
   renderEvidence();
 }
@@ -629,7 +816,7 @@ function renderEvents(job) {
       row.append(
         createElement('time', 'event-time', formatTime(event.ts)),
         createElement('span', 'event-type', event.type),
-        createElement('span', 'event-summary', EVENT_COPY[event.type] || '事件已记录'),
+        createElement('span', 'event-summary', describeEvent(event)),
       );
       elements.eventLog.append(row);
     }
@@ -764,6 +951,18 @@ function statusClass(status = '') {
   if (status === 'failed') return 'failed';
   if (['queued', 'planning', 'building', 'verifying', 'visual', 'repairing', 'running'].includes(status)) return status;
   return 'neutral';
+}
+
+const SUMMARY_TYPES = new Set(['plan:done', 'build:done', 'cmd:done', 'review', 'fix:start', 'fix:applied', 'polish:applied', 'polish:failed', 'repair:exhausted', 'quality:audit', 'visual:compare']);
+
+function describeEvent(event) {
+  const copy = EVENT_COPY[event.type] || '事件已记录';
+  const summary = String(event.summary || '').trim();
+  const safe = SUMMARY_TYPES.has(event.type)
+    && summary.length > 0 && summary.length <= 80
+    && !/[<>\\]|:\/\/|\/|\b[A-Za-z]:/.test(summary)
+    && !/\uFFFD/.test(summary);
+  return safe ? `${copy} · ${summary}` : copy;
 }
 
 function eventClass(type) {

@@ -19,7 +19,7 @@ test('console package command is registered', async () => {
   const pkg = JSON.parse(await fs.readFile(path.join(PROJECT_ROOT, 'package.json'), 'utf8'));
   assert.equal(pkg.scripts.console, 'node src/console/index.js');
   const css = await fs.readFile(path.join(PROJECT_ROOT, 'src', 'console', 'public', 'app.css'), 'utf8');
-  assert.match(css, /^\s*--surface: #ffffff;\s*$/m);
+  assert.match(css, /^\s*--surface: #fffdf8;\s*$/m);
 });
 
 test('browser console keeps the Product Lab workspace responsive and accessible', { skip: !ENABLED, timeout: 60_000 }, async () => {

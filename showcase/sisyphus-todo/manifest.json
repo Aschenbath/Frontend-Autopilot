@@ -1,0 +1,12 @@
+{
+  "title": "Sisyphus 待办",
+  "date": "2026-07-30",
+  "origin": "手工 vibe coding，截图驱动；未经过流水线验收",
+  "summary": "极简深色待办：单列任务、衬线标题与底部格言。",
+  "screenshots": [
+    "list.png"
+  ],
+  "labels": {
+    "list.png": "待办列表"
+  }
+}

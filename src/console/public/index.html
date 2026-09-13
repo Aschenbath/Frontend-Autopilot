@@ -19,6 +19,10 @@
           <button id="new-run" type="button">新建任务</button>
           <span id="history-count">0</span>
           <nav id="run-history" aria-label="历史任务"></nav>
+          <div id="showcase-section" hidden>
+            <span class="rail-heading">成品展示</span>
+            <nav id="showcase-list" aria-label="成品展示"></nav>
+          </div>
           <footer>
             <span id="connection-dot" aria-hidden="true"></span>
             <span id="connection-label">正在连接</span>
@@ -148,6 +152,7 @@
               <div class="canvas-viewport">
                 <div id="preview-empty"><strong>作品正在形成</strong><span>构建通过后，这里会保留最近一次可用预览。</span></div>
                 <iframe id="preview-frame" title="生成产品预览" hidden></iframe>
+                <div id="showcase-gallery" aria-label="成品截图" hidden></div>
               </div>
             </main>
 

@@ -1,0 +1,16 @@
+{
+  "title": "课程表插件",
+  "date": "2026-09-08",
+  "origin": "手工 vibe coding，截图驱动；未经过流水线验收",
+  "summary": "浏览器侧边栏课程表：月视图、日视图与课程编辑，暖纸色编辑感界面。",
+  "screenshots": [
+    "month.png",
+    "day.png",
+    "edit.png"
+  ],
+  "labels": {
+    "month.png": "月视图",
+    "day.png": "日视图",
+    "edit.png": "编辑课程"
+  }
+}
