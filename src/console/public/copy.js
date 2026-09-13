@@ -8,6 +8,9 @@ export const ERROR_COPY = {
   BODY_TOO_LARGE: '提交内容过大，请减少参考图数量或尺寸。',
   VISION_UNSUPPORTED: '当前模型或接口不支持图片理解，请更换支持视觉输入的模型。',
   API_KEY_REQUIRED: '请先在运行设置中填写本次会话使用的 API Key。',
+  BASE_URL_INVALID: 'API endpoint 需要是 http(s) 地址。',
+  MODELS_UNREACHABLE: '无法连接模型接口，请检查 endpoint 或网络。',
+  MODELS_FAILED: '模型接口返回错误，请检查 Key 与 endpoint。',
   JOB_ACTIVE: '已有任务正在运行，请等待它完成。',
   INTERNAL_ERROR: '本地工作台暂时无法完成请求，请查看事件记录。',
 };

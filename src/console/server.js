@@ -59,6 +59,9 @@ export function createConsoleServer({
       const shot = await showcase.readScreenshot(showcaseFile[1], showcaseFile[2]);
       return sendBuffer(res, 200, shot.data, shot.type);
     }
+    if (req.method === 'POST' && pathname === '/api/session/models') {
+      return sendJson(res, 200, await jobs.listModels(await readJson(req)));
+    }
     if (pathname === '/api/jobs' && req.method === 'GET') {
       return sendJson(res, 200, { jobs: await listJobs() });
     }

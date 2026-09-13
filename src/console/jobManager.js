@@ -34,6 +34,43 @@ export function createJobManager({ runsRoot, pipeline = runPipeline, load = load
     };
   }
 
+  async function listModels(input = {}) {
+    if (Object.hasOwn(input, 'baseUrl')) session.baseUrl = String(input.baseUrl ?? '').trim();
+    if (Object.hasOwn(input, 'apiKey') && String(input.apiKey ?? '').trim()) session.apiKey = String(input.apiKey).trim();
+    const apiKey = session.apiKey || env.FRONTEND_AUTOPILOT_API_KEY;
+    if (!apiKey) throw new ConsoleError('API_KEY_REQUIRED', 'Enter an API key for this session.', 422);
+    const baseUrl = String(session.baseUrl || env.FRONTEND_AUTOPILOT_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
+    if (!/^https?:\/\//.test(baseUrl)) throw new ConsoleError('BASE_URL_INVALID', 'API endpoint must be an http(s) URL.', 422);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20_000);
+    let res;
+    try {
+      res = await fetch(`${baseUrl}/models`, {
+        headers: { authorization: `Bearer ${apiKey}` },
+        signal: controller.signal,
+      });
+    } catch (error) {
+      throw new ConsoleError('MODELS_UNREACHABLE', `Could not reach the model endpoint: ${error.name === 'AbortError' ? 'timeout' : 'network error'}.`, 502);
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res.ok) throw new ConsoleError('MODELS_FAILED', `Model endpoint returned HTTP ${res.status}.`, 502);
+    let body;
+    try {
+      body = await res.json();
+    } catch {
+      throw new ConsoleError('MODELS_FAILED', 'Model endpoint returned a non-JSON response.', 502);
+    }
+    const raw = Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : [];
+    const models = [...new Set(raw
+      .map((item) => (typeof item === 'string' ? item : item?.id))
+      .filter((id) => typeof id === 'string' && id.length > 0 && id.length <= 120)
+      .map((id) => id.replace(/[^\w.:/@+-]/g, '')))]
+      .sort((a, b) => a.localeCompare(b))
+      .slice(0, 500);
+    return { models, baseUrl };
+  }
+
   async function startJob(input = {}) {
     if (activeJobId) throw new ConsoleError('JOB_ACTIVE', 'Another job is already running.', 409);
 
@@ -168,6 +205,7 @@ export function createJobManager({ runsRoot, pipeline = runPipeline, load = load
 
   return {
     setSessionConfig,
+    listModels,
     getStatus,
     startJob,
     getJob,

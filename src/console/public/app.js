@@ -42,6 +42,9 @@ const elements = {
   apiKey: document.querySelector('#api-key'),
   keyHint: document.querySelector('#key-hint'),
   clearKey: document.querySelector('#clear-key'),
+  fetchModels: document.querySelector('#fetch-models'),
+  modelOptions: document.querySelector('#model-options'),
+  modelHint: document.querySelector('#model-hint'),
   launchRun: document.querySelector('#launch-run'),
   newRun: document.querySelector('#new-run'),
   formMessage: document.querySelector('#form-message'),
@@ -321,6 +324,40 @@ async function saveSession() {
   renderStatus();
 }
 
+async function fetchModels() {
+  elements.fetchModels.disabled = true;
+  elements.fetchModels.textContent = '获取中…';
+  elements.modelHint.textContent = '';
+  try {
+    const payload = { baseUrl: elements.baseUrl.value.trim() };
+    const key = elements.apiKey.value.trim();
+    if (key) payload.apiKey = key;
+    const result = await api('/api/session/models', { method: 'POST', body: JSON.stringify(payload) });
+    elements.apiKey.value = '';
+    elements.modelOptions.replaceChildren();
+    for (const id of result.models) {
+      const option = document.createElement('option');
+      option.value = id;
+      elements.modelOptions.append(option);
+    }
+    elements.modelHint.textContent = result.models.length
+      ? `已获取 ${result.models.length} 个模型，点击输入框选择或继续手填。`
+      : '接口没有返回可用模型。';
+    if (result.models.length && !result.models.includes(elements.model.value.trim())) {
+      elements.model.value = result.models[0];
+    }
+    state.status = await api('/api/status');
+    renderStatus();
+    elements.model.focus();
+  } catch (error) {
+    elements.modelHint.textContent = error.message;
+    showToast(error.message);
+  } finally {
+    elements.fetchModels.disabled = false;
+    elements.fetchModels.textContent = '获取模型';
+  }
+}
+
 async function clearSessionKey() {
   state.status = await api('/api/session/config', { method: 'POST', body: JSON.stringify({ apiKey: '' }) });
   elements.apiKey.value = '';
@@ -460,6 +497,7 @@ function bindEvents() {
     launchJob();
   });
   elements.clearKey.addEventListener('click', () => clearSessionKey().catch((error) => showError(error.message)));
+  elements.fetchModels.addEventListener('click', fetchModels);
   elements.newRun.addEventListener('click', resetComposer);
   elements.brief.addEventListener('input', () => {
     updateBriefCount();

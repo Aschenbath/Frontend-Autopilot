@@ -297,7 +297,11 @@ dialog { color: var(--ink); }
 #settings-drawer fieldset { display: grid; gap: 8px; margin: 0 0 8px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 #settings-drawer fieldset label { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
 #settings-drawer input[type='radio'] { width: 18px; min-height: 18px; accent-color: var(--primary); }
-#key-hint { color: var(--muted); font-size: .72rem; }
+#key-hint, #model-hint { color: var(--muted); font-size: .72rem; }
+.model-picker { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.model-picker input { min-width: 0; }
+#fetch-models { padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; white-space: nowrap; transition: border-color 140ms var(--ease), color 140ms var(--ease), background 140ms var(--ease); }
+#fetch-models:hover:not(:disabled) { border-color: var(--primary); color: var(--primary-strong); background: var(--primary-soft); }
 #settings-drawer button[value='close'] { margin-top: 8px; border-color: var(--ink); background: var(--ink); color: #fff8ee; font-weight: 700; }
 #settings-drawer button[value='close']:hover { background: var(--primary-strong); border-color: var(--primary-strong); color: #fff8ee; }
 #image-dialog { width: min(900px, 94vw); max-height: 92vh; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-lg); }

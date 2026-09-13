@@ -201,7 +201,12 @@
           <label for="base-url">API endpoint</label>
           <input id="base-url" type="url">
           <label for="model">模型</label>
-          <input id="model">
+          <div class="model-picker">
+            <input id="model" list="model-options" autocomplete="off">
+            <button id="fetch-models" type="button">获取模型</button>
+          </div>
+          <datalist id="model-options"></datalist>
+          <span id="model-hint"></span>
           <label for="api-key">会话 API Key</label>
           <input id="api-key" type="password" autocomplete="off">
           <span id="key-hint"></span>
