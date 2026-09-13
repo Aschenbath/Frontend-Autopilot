@@ -119,6 +119,16 @@ npm install -> npm run build -> 启动 Vite -> Playwright 打开浏览器
 
 目前项目只生成使用模拟数据的 React + Vite 前端，不包含真实后端、登录系统、多人协作或云端部署，也不宣称能代替人工审美判断。
 
+## 对照：同一套“看截图写前端”的思路，手工 vibe coding 的课程表插件
+
+下面三张不是 Frontend Autopilot 的产出，而是我另外用同样的截图驱动方式手工 vibe coding 出来的课程表插件：把目标界面截图交给模型，逐轮对照截图修正。放在这里是为了对照两条路线的差距：手工路线能拿到更精细的视觉结果，但每一轮的验收都靠人眼；Frontend Autopilot 追求的是把“跑起来、点一遍、量一遍”这一段交给本地程序，代价是目前的生成质量还明显不如人工盯着改。
+
+| 月视图 | 日视图 | 编辑课程 |
+| --- | --- | --- |
+| ![课程表插件月视图](docs/screenshots/course-schedule-month.png) | ![课程表插件日视图](docs/screenshots/course-schedule-day.png) | ![课程表插件编辑页](docs/screenshots/course-schedule-edit.png) |
+
+把这个差距缩小，就是下一阶段的目标：让验收器对视觉细节（间距、字重、色彩层次）也能给出可执行的失败证据，而不只是点击尺寸和对比度。
+
 ## 快速运行
 
 需要 Node.js 20+。
