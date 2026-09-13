@@ -1,7 +1,6 @@
 {
   "title": "Read It Later 稍后阅读",
   "date": "2026-07-19",
-  "origin": "手工 vibe coding，截图驱动；未经过流水线验收",
   "summary": "稍后阅读列表：按日期分组的文章卡片，带来源、字数与阅读进度。",
   "screenshots": [
     "list.png"

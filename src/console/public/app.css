@@ -260,15 +260,12 @@ input:focus, textarea:focus { border-color: var(--primary); background: var(--su
 #preview-empty { display: grid; place-content: center; gap: 6px; padding: 28px; color: var(--muted); text-align: center; background: linear-gradient(145deg, #fffdf8, #f5efe4); }
 #preview-empty strong { color: var(--ink); font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
 #preview-empty span { font-size: .74rem; }
-#showcase-gallery { width: 100%; min-height: 520px; grid-area: 1 / 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding: 16px; overflow: auto; background: #14110e; }
-.product-canvas.showcase-mode .canvas-viewport { width: calc(100% - 28px); background: #14110e; border-color: #2a241d; }
-.product-canvas.showcase-mode[data-viewport='mobile'] #showcase-gallery { grid-template-columns: 1fr; }
+#showcase-gallery { width: 100%; height: 100%; min-height: 520px; grid-area: 1 / 1; display: grid; place-items: center; padding: 16px; overflow: hidden; background: #14110e; }
+.product-canvas.showcase-mode .canvas-viewport { background: #14110e; border-color: #2a241d; }
 .product-canvas.showcase-mode[data-viewport='mobile'] .canvas-viewport { width: min(440px, calc(100% - 28px)); }
-.product-canvas.showcase-mode[data-viewport='tablet'] #showcase-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.product-canvas.showcase-mode[data-viewport='tablet'] .canvas-viewport { width: min(900px, calc(100% - 28px)); }
-.showcase-figure { min-width: 0; margin: 0; display: grid; gap: 8px; align-content: start; padding: 10px; border: 1px solid #2a241d; border-radius: 12px; background: #1c1814; transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease); }
-.showcase-figure.active { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(209, 155, 58, .22); }
-.showcase-figure img { width: 100%; display: block; border-radius: 8px; object-fit: contain; background: #0f0d0b; cursor: zoom-in; }
+.product-canvas.showcase-mode[data-viewport='tablet'] .canvas-viewport { width: min(820px, calc(100% - 28px)); }
+.showcase-figure { width: 100%; height: 100%; min-height: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; }
+.showcase-figure img { width: 100%; height: 100%; min-height: 0; max-height: calc(100vh - 320px); display: block; border-radius: 8px; object-fit: contain; object-position: top center; background: #0f0d0b; cursor: zoom-in; }
 .showcase-figure figcaption { color: #d8cdb9; font-size: .72rem; font-weight: 600; letter-spacing: .02em; text-align: center; }
 .showcase-facts { display: grid; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
 .showcase-facts div { display: flex; justify-content: space-between; gap: 8px; }

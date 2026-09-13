@@ -198,7 +198,7 @@ function renderShowcase() {
   elements.workspaceTitle.textContent = '成品展示';
   elements.activeStatus.textContent = '成品展示';
   elements.activeStatus.className = 'status-chip showcase';
-  elements.modelReadout.textContent = item.origin || '手工作品';
+  elements.modelReadout.textContent = item.date ? `完成于 ${item.date}` : '';
   elements.runTitle.textContent = item.title;
   if (elements.runMode) elements.runMode.textContent = '成品展示';
   elements.runStarted.textContent = item.date || '--';
@@ -207,13 +207,11 @@ function renderShowcase() {
   elements.stageTrack.replaceChildren();
   elements.stageTrack.classList.add('showcase-track');
   const note = createElement('li', 'showcase-note');
-  note.append(
-    createElement('strong', '', item.title),
-    createElement('span', '', item.origin || '手工作品'),
-    createElement('p', '', item.summary || ''),
-  );
+  note.append(createElement('strong', '', item.title));
+  if (item.origin) note.append(createElement('span', '', item.origin));
+  note.append(createElement('p', '', item.summary || ''));
   const facts = createElement('dl', 'showcase-facts');
-  for (const [label, value] of [['日期', item.date || '未标日期'], ['页面', `${item.pages.length} 张截图`], ['交付形态', '浏览器插件 · 静态截图']]) {
+  for (const [label, value] of [['日期', item.date || '未标日期'], ['页面', `${item.pages.length} 张截图`], ['形态', '浏览器插件']]) {
     const row = document.createElement('div');
     row.append(createElement('dt', '', label), createElement('dd', '', value));
     facts.append(row);
@@ -246,24 +244,18 @@ function renderShowcase() {
   elements.previewEmpty.hidden = true;
   elements.previewFrame.hidden = true;
   elements.showcaseGallery.replaceChildren();
-  for (const page of item.pages) {
-    const figure = createElement('figure', `showcase-figure${page.name === current.name ? ' active' : ''}`);
-    figure.dataset.page = page.name;
-    const url = showcaseImageUrl(item, page.name);
-    const image = evidenceImage(url, `${item.title} · ${page.label}`);
-    image.addEventListener('click', () => {
-      elements.dialogImage.src = url;
-      elements.dialogCaption.textContent = `${item.title} · ${page.label}`;
-      elements.imageDialog.showModal();
-    });
-    figure.append(image, createElement('figcaption', '', page.label));
-    elements.showcaseGallery.append(figure);
-  }
-  elements.showcaseGallery.hidden = false;
-  requestAnimationFrame(() => {
-    const active = elements.showcaseGallery.querySelector('.showcase-figure.active');
-    if (active) elements.showcaseGallery.scrollTo({ top: active.offsetTop - 16, behavior: 'smooth' });
+  const figure = createElement('figure', 'showcase-figure active');
+  figure.dataset.page = current.name;
+  const url = showcaseImageUrl(item, current.name);
+  const image = evidenceImage(url, `${item.title} · ${current.label}`);
+  image.addEventListener('click', () => {
+    elements.dialogImage.src = url;
+    elements.dialogCaption.textContent = `${item.title} · ${current.label}`;
+    elements.imageDialog.showModal();
   });
+  figure.append(image, createElement('figcaption', '', `${current.label} · ${item.pages.indexOf(current) + 1} / ${item.pages.length}`));
+  elements.showcaseGallery.append(figure);
+  elements.showcaseGallery.hidden = false;
   elements.launchPreview.disabled = true;
   elements.launchPreview.textContent = '启动预览';
   elements.openPreview.disabled = true;
@@ -275,13 +267,11 @@ function renderShowcase() {
   elements.inspectorProduct.replaceChildren();
   const block = createElement('div', 'inspector-block');
   block.append(createElement('h3', '', '作品说明'), createElement('p', '', item.summary || '暂无说明'));
-  const origin = createElement('div', 'inspector-block');
-  origin.append(createElement('h3', '', '来源'), createElement('p', '', item.origin || '手工作品'));
   const pages = createElement('div', 'inspector-block');
   const list = document.createElement('ul');
   for (const page of item.pages) list.append(createElement('li', '', page.label));
   pages.append(createElement('h3', '', `页面 · ${item.pages.length}`), list);
-  elements.inspectorProduct.append(block, origin, pages);
+  elements.inspectorProduct.append(block, pages);
   elements.inspectorDesign.replaceChildren(createElement('div', 'panel-empty', '成品展示没有设计规格记录。'));
   elements.inspectorQuality.replaceChildren(createElement('div', 'panel-empty', '成品展示没有 UI 质量验收记录。'));
 
